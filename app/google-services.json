@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "28568694233",
+    "project_id": "visudhajivam-app",
+    "storage_bucket": "visudhajivam-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:28568694233:android:a0dd8884d1c54825db3dc8",
+        "android_client_info": {
+          "package_name": "com.example.visudhaajivamapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "28568694233-63mv41jjeovp8nua0u479p7cu8eqtips.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxX4lpN4C6z6UY812kTuj7JWV5lpLGftk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "28568694233-63mv41jjeovp8nua0u479p7cu8eqtips.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

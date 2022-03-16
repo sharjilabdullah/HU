@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">VisudhAajivam App</string>
+    <string name="navigation_drawer_open">Open Navigation Drawer</string>
+    <string name="navigation_drawer_close">Close Navigation Drawer</string>
+    <string name="logout">Logout</string>
+    <string name="off">OFF</string>
+    <string name="no_category_found">No Category Found</string>
+    <string name="addtocart">"Item Added To Cart "</string>
+    <string name="stock_limit">Out of Stock</string>
+
+    <string name="doctors_name">Doctors Name</string>
+    <string name="description">Description</string>
+    <string name="full_name">Full Name</string>
+    <string name="email">Email</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="available_date">Available Date</string>
+    <string name="problems">Problems</string>
+    <string name="get_an_appointment">GET AN APPOINTMENT</string>
+
+</resources>

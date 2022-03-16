@@ -1,0 +1,770 @@
+Index: app/src/main/java/com/example/visudhaajivamapp/manageaddress/AddressDetailsActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.manageaddress;\r\n\r\nimport androidx.annotation.Nullable;\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport android.content.Context;\r\nimport android.content.Intent;\r\nimport android.content.SharedPreferences;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.view.View;\r\nimport android.widget.Button;\r\nimport android.widget.EditText;\r\nimport android.widget.RadioButton;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport com.android.volley.AuthFailureError;\r\nimport com.android.volley.Request;\r\nimport com.android.volley.RequestQueue;\r\nimport com.android.volley.Response;\r\nimport com.android.volley.VolleyError;\r\nimport com.android.volley.toolbox.StringRequest;\r\nimport com.android.volley.toolbox.Volley;\r\nimport com.example.visudhaajivamapp.MainActivity;\r\nimport com.example.visudhaajivamapp.R;\r\nimport com.example.visudhaajivamapp.models.SubCategory;\r\nimport com.google.gson.Gson;\r\n\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\nimport java.util.regex.Pattern;\r\n\r\npublic class AddressDetailsActivity extends AppCompatActivity {\r\n\r\n    public static final int LOCATION_REQUEST_CODE = 333;\r\n    public static final String CHECKOUT_URL = \"https://visudhajivam.in/android/checkout.php\";\r\n    private EditText name;\r\n    private EditText mobile;\r\n    private EditText fullAddress;\r\n    private EditText landMark;\r\n    private EditText pinCode;\r\n    private EditText city;\r\n    private EditText state;\r\n    private EditText country;\r\n    private RadioButton delivery;\r\n    private TextView quantityText;\r\n    private TextView priceText;\r\n    private Button continueButton;\r\n    private SubCategory product;\r\n    private BuyNowModel finalModel;\r\n    private String  quantity;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_address_details);\r\n\r\n        name = findViewById(R.id.name_id);\r\n        mobile = findViewById(R.id.mobile_number_id);\r\n        fullAddress = findViewById(R.id.full_address_id);\r\n        landMark = findViewById(R.id.landmark_id);\r\n        pinCode = findViewById(R.id.pincode_id);\r\n        city = findViewById(R.id.city_id);\r\n        state = findViewById(R.id.state_id);\r\n        country = findViewById(R.id.country_id);\r\n        delivery = findViewById(R.id.delivery_method_id);\r\n        quantityText = findViewById(R.id.quantity_id);\r\n        priceText = findViewById(R.id.price_id);\r\n        continueButton = findViewById(R.id.continue_id);\r\n\r\n        //Receiving intent for Edit Address\r\n        Intent intent = getIntent();\r\n        if (intent.hasExtra(\"PRODUCT\")) {\r\n            product = (SubCategory) intent.getSerializableExtra(\"PRODUCT\");\r\n            quantity = getIntent().getStringExtra(\"QUANTITY\");\r\n\r\n            quantityText.setText(quantity + \" items\");\r\n            double priceToSend = product.getDiscounted_price() * Integer.parseInt(quantity);\r\n            priceText.setText(String.valueOf(priceToSend));\r\n\r\n//            fillAllFields();\r\n        }\r\n\r\n        //update button clicked\r\n        continueButton.setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                trimAllFields();\r\n                if (!name.getText().toString().equals(\"\") && !mobile.getText().toString().equals(\"\") && !fullAddress.getText().toString().equals(\"\") && !pinCode.getText().toString().equals(\"\") && !landMark.getText().toString().equals(\"\") && !city.getText().toString().equals(\"\") && !state.getText().toString().equals(\"\") && !country.getText().toString().equals(\"\")) {\r\n                    Boolean status = sendDataToOnlineDB();\r\n                    if (!status) {\r\n                        return;\r\n                    }\r\n                } else {\r\n                    Toast.makeText(AddressDetailsActivity.this, \"All Fields Required\", Toast.LENGTH_SHORT).show();\r\n                }\r\n            }\r\n        });\r\n\r\n    }// end of onCreate()\r\n\r\n    private Boolean isNumberCorrect(String number) {\r\n        String regex = \"(0)?[7-9][0-9]{9}\";\r\n        return Pattern.compile(regex).matcher(number).matches(); // Return true if number is correctly formatted.\r\n    }\r\n\r\n    private Boolean isPinCodeCorrect(String pincode) {\r\n        String regex = \"[1-9][0-9]{5}\";\r\n        return Pattern.compile(regex).matcher(pincode).matches(); // Return true if pincode is correctly formatted.\r\n    }\r\n\r\n    private void showInvalidNumberToast() {\r\n        Toast.makeText(AddressDetailsActivity.this, \"Enter Valid Number!\", Toast.LENGTH_SHORT).show();\r\n    }\r\n\r\n    private void showInvalidPinCodeToast() {\r\n        Toast.makeText(AddressDetailsActivity.this, \"Enter Valid PinCode!\", Toast.LENGTH_SHORT).show();\r\n    }\r\n\r\n    private void trimAllFields() {\r\n        name.setText(name.getText().toString().trim());\r\n        mobile.setText(mobile.getText().toString().trim());\r\n        fullAddress.setText(fullAddress.getText().toString().trim());\r\n        landMark.setText(landMark.getText().toString().trim());\r\n        pinCode.setText(pinCode.getText().toString().trim());\r\n        city.setText(city.getText().toString().trim());\r\n        state.setText(state.getText().toString().trim());\r\n    }\r\n\r\n    private Boolean sendDataToOnlineDB() {\r\n        if(addDataToBuyNowModel()==false){\r\n            return false;\r\n        }\r\n        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());\r\n\r\n        StringRequest stringRequest = new StringRequest(Request.Method.POST, CHECKOUT_URL,\r\n                new Response.Listener<String>() {\r\n                    @Override\r\n                    public void onResponse(String response) {\r\n                        Toast.makeText(AddressDetailsActivity.this,response,Toast.LENGTH_SHORT).show();\r\n//                        Log.i(\"Response\",response);\r\n                    }\r\n                },\r\n                new Response.ErrorListener() {\r\n                    @Override\r\n                    public void onErrorResponse(VolleyError error) {\r\n                    }\r\n                }){\r\n            @Override\r\n            protected Map<String, String> getParams() throws AuthFailureError {\r\n                Map<String,String> prams = new HashMap<>();\r\n                prams.put(\"user_id\",finalModel.getUser_id());\r\n                prams.put(\"user_name\",finalModel.getUser_name());\r\n                prams.put(\"mobile\",finalModel.getMobile());\r\n                prams.put(\"deliverymethod\",finalModel.getDeliverymethod());\r\n                prams.put(\"tax\",String.valueOf(finalModel.getTax()));\r\n                prams.put(\"total\",String.valueOf(finalModel.getTotal()));\r\n                prams.put(\"cash\",finalModel.getCash());\r\n                prams.put(\"id\",String.valueOf(finalModel.getId()));\r\n                prams.put(\"price\",String.valueOf(finalModel.getPrice()));\r\n                prams.put(\"quantity\",String.valueOf(finalModel.getQuantity()));\r\n                prams.put(\"pname\",finalModel.getPname());\r\n                prams.put(\"username\",finalModel.getUsername());\r\n                prams.put(\"address\",finalModel.getAddress());\r\n                prams.put(\"address1\",finalModel.getAddress1());\r\n                prams.put(\"address2\",finalModel.getAddress2());\r\n                prams.put(\"address3\",finalModel.getAddress3());\r\n                prams.put(\"paymethod\",finalModel.getPaymethod());\r\n                prams.put(\"country\",finalModel.getCountry());\r\n                prams.put(\"state\",finalModel.getState());\r\n\r\n                return prams;\r\n            }\r\n        };\r\n        requestQueue.add(stringRequest);\r\n\r\n\r\n        return true;\r\n    }\r\n\r\n    private Boolean addDataToBuyNowModel() {\r\n        SharedPreferences pref = getSharedPreferences(\"tech\", Context.MODE_PRIVATE);\r\n        finalModel = new BuyNowModel();\r\n        finalModel.setUser_id(String.valueOf(pref.getInt(\"id\",0))); //user id\r\n        finalModel.setUser_name(pref.getString(\"user_name\", \"\")); // email\r\n        Log.i(\"UserIdAndUserName\",pref.getInt(\"id\",0)+\"**************\"+finalModel.getUser_name());\r\n\r\n        if(!isNumberCorrect(mobile.getText().toString())){\r\n\r\n            //If number is not valid\r\n            showInvalidNumberToast();\r\n            return false;\r\n        }\r\n        finalModel.setMobile(mobile.getText().toString());\r\n\r\n        finalModel.setDeliverymethod(\"Cash On Delivery\");\r\n        finalModel.setTax(50); // demo\r\n        finalModel.setTotal(product.getStock()); // demo\r\n        finalModel.setCash(\"Cash On Delivery\");\r\n        finalModel.setId(product.getId()); // product id\r\n        finalModel.setPrice(Double.parseDouble((String) priceText.getText())); //product price\r\n        finalModel.setQuantity(Integer.parseInt(quantity));\r\n        finalModel.setPname(product.getName()); //procuct name\r\n        finalModel.setUsername(name.getText().toString());\r\n        finalModel.setAddress(fullAddress.getText().toString());\r\n\r\n        if(!isPinCodeCorrect(pinCode.getText().toString())){\r\n            showInvalidPinCodeToast();\r\n            return false;\r\n        }\r\n        finalModel.setAddress1(pinCode.getText().toString());\r\n        finalModel.setAddress2(landMark.getText().toString());\r\n        finalModel.setAddress3(city.getText().toString());\r\n        finalModel.setPaymethod(\"Cash On Delivery\");\r\n        finalModel.setCountry(country.getText().toString());\r\n        finalModel.setState(state.getText().toString());\r\n\r\n        Log.i(\"AllData\",\"id = \"+finalModel.getUser_id()+\", user_name = \"+finalModel.getUser_name()+\", mobile = \"+finalModel.getMobile()+\r\n                \", Delivery Method = \"+finalModel.getDeliverymethod()+\", Tax = \"+finalModel.getTax()+ \", Total = \"+finalModel.getTotal()+\", Cash = \"+finalModel.getCash() +\r\n                \", Product Id = \"+finalModel.getId()+\", price = \"+finalModel.getPrice()+\", quanitity = \"+finalModel.getQuantity()+\", Pname = \"+finalModel.getPname()+\r\n                \", Username = \"+finalModel.getUsername()+\", Address = \"+finalModel.getAddress()+\", Address1 = \"+finalModel.getAddress1()+\r\n                \", Address2 = \"+finalModel.getAddress2()+ \", Address3 = \"+finalModel.getAddress3()+\", PayMethod = \"+finalModel.getPaymethod()+\r\n                \", Country = \"+finalModel.getCountry()+\", state = \"+finalModel.getState());\r\n        return true;\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/manageaddress/AddressDetailsActivity.java	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/java/com/example/visudhaajivamapp/manageaddress/AddressDetailsActivity.java	(date 1625547941984)
+@@ -27,6 +27,8 @@
+ import com.example.visudhaajivamapp.models.SubCategory;
+ import com.google.gson.Gson;
+ 
++import java.lang.reflect.Array;
++import java.util.ArrayList;
+ import java.util.HashMap;
+ import java.util.Map;
+ import java.util.regex.Pattern;
+@@ -34,7 +36,6 @@
+ public class AddressDetailsActivity extends AppCompatActivity {
+ 
+     public static final int LOCATION_REQUEST_CODE = 333;
+-    public static final String CHECKOUT_URL = "https://visudhajivam.in/android/checkout.php";
+     private EditText name;
+     private EditText mobile;
+     private EditText fullAddress;
+@@ -47,9 +48,11 @@
+     private TextView quantityText;
+     private TextView priceText;
+     private Button continueButton;
+-    private SubCategory product;
++    private ArrayList<SubCategory> productList;
+     private BuyNowModel finalModel;
+-    private String  quantity;
++    private ArrayList<String>  quantityList;
++    private int totalQuantity = 0;
++    private double totalPrice = 0;
+ 
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+@@ -71,27 +74,35 @@
+ 
+         //Receiving intent for Edit Address
+         Intent intent = getIntent();
+-        if (intent.hasExtra("PRODUCT")) {
+-            product = (SubCategory) intent.getSerializableExtra("PRODUCT");
+-            quantity = getIntent().getStringExtra("QUANTITY");
++        if (intent.hasExtra("PRODUCT_LIST")) {
++
++            productList = (ArrayList<SubCategory>) intent.getSerializableExtra("PRODUCT_LIST");
++            quantityList = (ArrayList<String>) getIntent().getSerializableExtra("QUANTITY_LIST");
+ 
+-            quantityText.setText(quantity + " items");
+-            double priceToSend = product.getDiscounted_price() * Integer.parseInt(quantity);
+-            priceText.setText(String.valueOf(priceToSend));
++            calculateTotalQuantity();
++            quantityText.setText(totalQuantity + " items");
++            calculateTotalPrice();
++            priceText.setText(String.valueOf(totalPrice));
+ 
+-//            fillAllFields();
+         }
+ 
+-        //update button clicked
++
++        //continue button clicked
+         continueButton.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
+                 trimAllFields();
+                 if (!name.getText().toString().equals("") && !mobile.getText().toString().equals("") && !fullAddress.getText().toString().equals("") && !pinCode.getText().toString().equals("") && !landMark.getText().toString().equals("") && !city.getText().toString().equals("") && !state.getText().toString().equals("") && !country.getText().toString().equals("")) {
+-                    Boolean status = sendDataToOnlineDB();
++                    Boolean status = addDataToBuyNowModel();
+                     if (!status) {
+                         return;
+                     }
++                    //move to ConfirmOrderActivity
++                    Intent sendIntent = new Intent(AddressDetailsActivity.this,ConfirmOrderActivity.class);
++                    sendIntent.putExtra("BUY_NOW_MODEL",finalModel);
++                    sendIntent.putExtra("TOTAL_QUANTITY",quantityText.getText());
++                    startActivity(sendIntent);
++
+                 } else {
+                     Toast.makeText(AddressDetailsActivity.this, "All Fields Required", Toast.LENGTH_SHORT).show();
+                 }
+@@ -100,22 +111,16 @@
+ 
+     }// end of onCreate()
+ 
+-    private Boolean isNumberCorrect(String number) {
+-        String regex = "(0)?[7-9][0-9]{9}";
+-        return Pattern.compile(regex).matcher(number).matches(); // Return true if number is correctly formatted.
+-    }
+-
+-    private Boolean isPinCodeCorrect(String pincode) {
+-        String regex = "[1-9][0-9]{5}";
+-        return Pattern.compile(regex).matcher(pincode).matches(); // Return true if pincode is correctly formatted.
++    private void calculateTotalQuantity(){
++        for(String i : quantityList){
++            totalQuantity = totalQuantity + Integer.parseInt(i);
++        }
+     }
+ 
+-    private void showInvalidNumberToast() {
+-        Toast.makeText(AddressDetailsActivity.this, "Enter Valid Number!", Toast.LENGTH_SHORT).show();
+-    }
+-
+-    private void showInvalidPinCodeToast() {
+-        Toast.makeText(AddressDetailsActivity.this, "Enter Valid PinCode!", Toast.LENGTH_SHORT).show();
++    private void calculateTotalPrice(){
++        for(int i=0;i<productList.size();i++){
++            totalPrice = totalPrice + productList.get(i).getDiscounted_price() * Integer.parseInt(quantityList.get(i));
++        }
+     }
+ 
+     private void trimAllFields() {
+@@ -128,57 +133,6 @@
+         state.setText(state.getText().toString().trim());
+     }
+ 
+-    private Boolean sendDataToOnlineDB() {
+-        if(addDataToBuyNowModel()==false){
+-            return false;
+-        }
+-        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+-
+-        StringRequest stringRequest = new StringRequest(Request.Method.POST, CHECKOUT_URL,
+-                new Response.Listener<String>() {
+-                    @Override
+-                    public void onResponse(String response) {
+-                        Toast.makeText(AddressDetailsActivity.this,response,Toast.LENGTH_SHORT).show();
+-//                        Log.i("Response",response);
+-                    }
+-                },
+-                new Response.ErrorListener() {
+-                    @Override
+-                    public void onErrorResponse(VolleyError error) {
+-                    }
+-                }){
+-            @Override
+-            protected Map<String, String> getParams() throws AuthFailureError {
+-                Map<String,String> prams = new HashMap<>();
+-                prams.put("user_id",finalModel.getUser_id());
+-                prams.put("user_name",finalModel.getUser_name());
+-                prams.put("mobile",finalModel.getMobile());
+-                prams.put("deliverymethod",finalModel.getDeliverymethod());
+-                prams.put("tax",String.valueOf(finalModel.getTax()));
+-                prams.put("total",String.valueOf(finalModel.getTotal()));
+-                prams.put("cash",finalModel.getCash());
+-                prams.put("id",String.valueOf(finalModel.getId()));
+-                prams.put("price",String.valueOf(finalModel.getPrice()));
+-                prams.put("quantity",String.valueOf(finalModel.getQuantity()));
+-                prams.put("pname",finalModel.getPname());
+-                prams.put("username",finalModel.getUsername());
+-                prams.put("address",finalModel.getAddress());
+-                prams.put("address1",finalModel.getAddress1());
+-                prams.put("address2",finalModel.getAddress2());
+-                prams.put("address3",finalModel.getAddress3());
+-                prams.put("paymethod",finalModel.getPaymethod());
+-                prams.put("country",finalModel.getCountry());
+-                prams.put("state",finalModel.getState());
+-
+-                return prams;
+-            }
+-        };
+-        requestQueue.add(stringRequest);
+-
+-
+-        return true;
+-    }
+-
+     private Boolean addDataToBuyNowModel() {
+         SharedPreferences pref = getSharedPreferences("tech", Context.MODE_PRIVATE);
+         finalModel = new BuyNowModel();
+@@ -193,15 +147,29 @@
+             return false;
+         }
+         finalModel.setMobile(mobile.getText().toString());
+-
+-        finalModel.setDeliverymethod("Cash On Delivery");
+         finalModel.setTax(50); // demo
+-        finalModel.setTotal(product.getStock()); // demo
+-        finalModel.setCash("Cash On Delivery");
+-        finalModel.setId(product.getId()); // product id
+-        finalModel.setPrice(Double.parseDouble((String) priceText.getText())); //product price
+-        finalModel.setQuantity(Integer.parseInt(quantity));
+-        finalModel.setPname(product.getName()); //procuct name
++        finalModel.setTotal(Double.parseDouble((String) priceText.getText())); //Total price
++
++        ArrayList<Double> priceList = new ArrayList<Double>();
++        ArrayList<Integer> prodIdList = new ArrayList<Integer>();
++        ArrayList<String> prodNameList = new ArrayList<String>();
++        for(SubCategory prod : productList)
++        {
++            priceList.add(prod.getPrice());
++            prodIdList.add(prod.getId());
++            prodNameList.add(prod.getName());
++        }
++
++
++        finalModel.setId(prodIdList); // product id
++        finalModel.setPrice(priceList); //product price array
++
++        ArrayList<Integer> prodQuantityList = new ArrayList<Integer>();
++        for(String quan : quantityList){
++            prodQuantityList.add(Integer.parseInt(quan));
++        }
++        finalModel.setQuantity(prodQuantityList);
++        finalModel.setPname(prodNameList); //procuct name array
+         finalModel.setUsername(name.getText().toString());
+         finalModel.setAddress(fullAddress.getText().toString());
+ 
+@@ -212,16 +180,33 @@
+         finalModel.setAddress1(pinCode.getText().toString());
+         finalModel.setAddress2(landMark.getText().toString());
+         finalModel.setAddress3(city.getText().toString());
+-        finalModel.setPaymethod("Cash On Delivery");
+         finalModel.setCountry(country.getText().toString());
+         finalModel.setState(state.getText().toString());
+ 
+         Log.i("AllData","id = "+finalModel.getUser_id()+", user_name = "+finalModel.getUser_name()+", mobile = "+finalModel.getMobile()+
+-                ", Delivery Method = "+finalModel.getDeliverymethod()+", Tax = "+finalModel.getTax()+ ", Total = "+finalModel.getTotal()+", Cash = "+finalModel.getCash() +
++                ", Delivery Method = "+finalModel.getDeliverymethod()+", Tax = "+finalModel.getTax()+ ", Total = "+new Gson().toJson(finalModel.getTotal())+", Cash = "+finalModel.getCash() +
+                 ", Product Id = "+finalModel.getId()+", price = "+finalModel.getPrice()+", quanitity = "+finalModel.getQuantity()+", Pname = "+finalModel.getPname()+
+                 ", Username = "+finalModel.getUsername()+", Address = "+finalModel.getAddress()+", Address1 = "+finalModel.getAddress1()+
+                 ", Address2 = "+finalModel.getAddress2()+ ", Address3 = "+finalModel.getAddress3()+", PayMethod = "+finalModel.getPaymethod()+
+                 ", Country = "+finalModel.getCountry()+", state = "+finalModel.getState());
+         return true;
+     }
++
++    private Boolean isNumberCorrect(String number) {
++        String regex = "(0)?[7-9][0-9]{9}";
++        return Pattern.compile(regex).matcher(number).matches(); // Return true if number is correctly formatted.
++    }
++
++    private Boolean isPinCodeCorrect(String pincode) {
++        String regex = "[1-9][0-9]{5}";
++        return Pattern.compile(regex).matcher(pincode).matches(); // Return true if pincode is correctly formatted.
++    }
++
++    private void showInvalidNumberToast() {
++        Toast.makeText(AddressDetailsActivity.this, "Enter Valid Number!", Toast.LENGTH_SHORT).show();
++    }
++
++    private void showInvalidPinCodeToast() {
++        Toast.makeText(AddressDetailsActivity.this, "Enter Valid PinCode!", Toast.LENGTH_SHORT).show();
++    }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/example/visudhaajivamapp/manageaddress/BuyNowModel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.manageaddress;\r\n\r\npublic class BuyNowModel {\r\n    private String user_id;\r\n    private String user_name;\r\n    private String mobile;\r\n    private String deliverymethod;\r\n    private double tax;\r\n    private int total;\r\n    private String cash;\r\n    private  int id;\r\n    private double price;\r\n    private int quantity;\r\n    private String pname;\r\n    private String username;\r\n    private String address;//address\r\n    private String address1;//pincode\r\n    private String address2;//landmark\r\n    private String getAddress3;//city\r\n    private String paymethod;\r\n    private String country;\r\n    private String state;\r\n\r\n    BuyNowModel(){\r\n\r\n    }\r\n\r\n    public BuyNowModel(String user_id, String user_name, String mobile, String deliverymethod, double tax, int total, String cash, int id, double price, int quantity, String pname, String username, String address, String address1, String address2, String getAddress3, String paymethod, String country, String state) {\r\n        this.user_id = user_id;\r\n        this.user_name = user_name;\r\n        this.mobile = mobile;\r\n        this.deliverymethod = deliverymethod;\r\n        this.tax = tax;\r\n        this.total = total;\r\n        this.cash = cash;\r\n        this.id = id;\r\n        this.price = price;\r\n        this.quantity = quantity;\r\n        this.pname = pname;\r\n        this.username = username;\r\n        this.address = address;\r\n        this.address1 = address1;\r\n        this.address2 = address2;\r\n        this.getAddress3 = getAddress3;\r\n        this.paymethod = paymethod;\r\n        this.country = country;\r\n        this.state = state;\r\n    }\r\n\r\n    public String getUser_id() {\r\n        return user_id;\r\n    }\r\n\r\n    public void setUser_id(String user_id) {\r\n        this.user_id = user_id;\r\n    }\r\n\r\n    public String getUser_name() {\r\n        return user_name;\r\n    }\r\n\r\n    public void setUser_name(String user_name) {\r\n        this.user_name = user_name;\r\n    }\r\n\r\n    public String getMobile() {\r\n        return mobile;\r\n    }\r\n\r\n    public void setMobile(String mobile) {\r\n        this.mobile = mobile;\r\n    }\r\n\r\n    public String getDeliverymethod() {\r\n        return deliverymethod;\r\n    }\r\n\r\n    public void setDeliverymethod(String deliverymethod) {\r\n        this.deliverymethod = deliverymethod;\r\n    }\r\n\r\n    public double getTax() {\r\n        return tax;\r\n    }\r\n\r\n    public void setTax(double tax) {\r\n        this.tax = tax;\r\n    }\r\n\r\n    public int getTotal() {\r\n        return total;\r\n    }\r\n\r\n    public void setTotal(int total) {\r\n        this.total = total;\r\n    }\r\n\r\n    public String getCash() {\r\n        return cash;\r\n    }\r\n\r\n    public void setCash(String cash) {\r\n        this.cash = cash;\r\n    }\r\n\r\n    public int getId() {\r\n        return id;\r\n    }\r\n\r\n    public void setId(int id) {\r\n        this.id = id;\r\n    }\r\n\r\n    public double getPrice() {\r\n        return price;\r\n    }\r\n\r\n    public void setPrice(double price) {\r\n        this.price = price;\r\n    }\r\n\r\n    public int getQuantity() {\r\n        return quantity;\r\n    }\r\n\r\n    public void setQuantity(int quantity) {\r\n        this.quantity = quantity;\r\n    }\r\n\r\n    public String getPname() {\r\n        return pname;\r\n    }\r\n\r\n    public void setPname(String pname) {\r\n        this.pname = pname;\r\n    }\r\n\r\n    public String getUsername() {\r\n        return username;\r\n    }\r\n\r\n    public void setUsername(String username) {\r\n        this.username = username;\r\n    }\r\n\r\n    public String getAddress() {\r\n        return address;\r\n    }\r\n\r\n    public void setAddress(String address) {\r\n        this.address = address;\r\n    }\r\n\r\n    public String getAddress1() {\r\n        return address1;\r\n    }\r\n\r\n    public void setAddress1(String address1) {\r\n        this.address1 = address1;\r\n    }\r\n\r\n    public String getAddress2() {\r\n        return address2;\r\n    }\r\n\r\n    public void setAddress2(String address2) {\r\n        this.address2 = address2;\r\n    }\r\n\r\n    public String getAddress3() {\r\n        return getAddress3;\r\n    }\r\n\r\n    public void setAddress3(String getAddress3) {\r\n        this.getAddress3 = getAddress3;\r\n    }\r\n\r\n    public String getPaymethod() {\r\n        return paymethod;\r\n    }\r\n\r\n    public void setPaymethod(String paymethod) {\r\n        this.paymethod = paymethod;\r\n    }\r\n\r\n    public String getCountry() {\r\n        return country;\r\n    }\r\n\r\n    public void setCountry(String country) {\r\n        this.country = country;\r\n    }\r\n\r\n    public String getState() {\r\n        return state;\r\n    }\r\n\r\n    public void setState(String state) {\r\n        this.state = state;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/manageaddress/BuyNowModel.java	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/java/com/example/visudhaajivamapp/manageaddress/BuyNowModel.java	(date 1625547942048)
+@@ -1,17 +1,23 @@
+ package com.example.visudhaajivamapp.manageaddress;
+ 
+-public class BuyNowModel {
++import android.content.Intent;
++
++import java.io.Serializable;
++import java.lang.reflect.Array;
++import java.util.ArrayList;
++
++public class BuyNowModel implements Serializable {
+     private String user_id;
+     private String user_name;
+     private String mobile;
+     private String deliverymethod;
+     private double tax;
+-    private int total;
++    private double total; // Total price
+     private String cash;
+-    private  int id;
+-    private double price;
+-    private int quantity;
+-    private String pname;
++    private  ArrayList<Integer> id;
++    private ArrayList<Double> price;
++    private ArrayList<Integer> quantity;
++    private ArrayList<String> pname;
+     private String username;
+     private String address;//address
+     private String address1;//pincode
+@@ -25,7 +31,7 @@
+ 
+     }
+ 
+-    public BuyNowModel(String user_id, String user_name, String mobile, String deliverymethod, double tax, int total, String cash, int id, double price, int quantity, String pname, String username, String address, String address1, String address2, String getAddress3, String paymethod, String country, String state) {
++    public BuyNowModel(String user_id, String user_name, String mobile, String deliverymethod, double tax, double total, String cash, ArrayList<Integer> id, ArrayList<Double> price, ArrayList<Integer> quantity, ArrayList<String> pname, String username, String address, String address1, String address2, String getAddress3, String paymethod, String country, String state) {
+         this.user_id = user_id;
+         this.user_name = user_name;
+         this.mobile = mobile;
+@@ -87,11 +93,11 @@
+         this.tax = tax;
+     }
+ 
+-    public int getTotal() {
++    public double getTotal() {
+         return total;
+     }
+ 
+-    public void setTotal(int total) {
++    public void setTotal(double total) {
+         this.total = total;
+     }
+ 
+@@ -103,35 +109,35 @@
+         this.cash = cash;
+     }
+ 
+-    public int getId() {
++    public ArrayList<Integer> getId() {
+         return id;
+     }
+ 
+-    public void setId(int id) {
++    public void setId(ArrayList<Integer> id) {
+         this.id = id;
+     }
+ 
+-    public double getPrice() {
++    public ArrayList<Double> getPrice() {
+         return price;
+     }
+ 
+-    public void setPrice(double price) {
++    public void setPrice(ArrayList<Double> price) {
+         this.price = price;
+     }
+ 
+-    public int getQuantity() {
++    public ArrayList<Integer> getQuantity() {
+         return quantity;
+     }
+ 
+-    public void setQuantity(int quantity) {
++    public void setQuantity(ArrayList<Integer> quantity) {
+         this.quantity = quantity;
+     }
+ 
+-    public String getPname() {
++    public ArrayList<String> getPname() {
+         return pname;
+     }
+ 
+-    public void setPname(String pname) {
++    public void setPname(ArrayList<String> pname) {
+         this.pname = pname;
+     }
+ 
+Index: app/src/main/java/com/example/visudhaajivamapp/adapter/CartItemsAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.adapter;\r\n\r\nimport android.annotation.SuppressLint;\r\nimport android.app.Activity;\r\nimport android.content.Context;\r\nimport android.content.Intent;\r\nimport android.graphics.Paint;\r\nimport android.util.Log;\r\nimport android.view.LayoutInflater;\r\nimport android.view.View;\r\nimport android.view.ViewGroup;\r\nimport android.widget.ImageView;\r\nimport android.widget.LinearLayout;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.annotation.NonNull;\r\nimport androidx.recyclerview.widget.RecyclerView;\r\n\r\nimport com.android.volley.AuthFailureError;\r\nimport com.android.volley.Request;\r\nimport com.android.volley.RequestQueue;\r\nimport com.android.volley.Response;\r\nimport com.android.volley.VolleyError;\r\nimport com.android.volley.toolbox.StringRequest;\r\nimport com.android.volley.toolbox.Volley;\r\nimport com.bumptech.glide.Glide;\r\nimport com.example.visudhaajivamapp.DashboardMain;\r\nimport com.example.visudhaajivamapp.R;\r\nimport com.example.visudhaajivamapp.addedbysam.CartListActivity;\r\nimport com.example.visudhaajivamapp.models.CartItems;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.HashMap;\r\nimport java.util.List;\r\nimport java.util.Map;\r\n\r\npublic class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.CartViewHolder> {\r\n\r\n    public final List<CartItems> categorylist; //= CartListActivity.productList;\r\n\r\n    //categorylist = CartListActivity.\r\n    final int layout;\r\n    //final Activity activity;\r\n    public static int Cartitems;\r\n    final Context context;\r\n    final String product_varid,userid,identity;\r\n    //final int catid;\r\n    //private Context mCtx;\r\n    String Cartremove_URL= \"https://visudhajivam.in/android/cart_delete.php\";\r\n    public CartItemsAdapter(Context context, ArrayList<CartItems> categorylist, int layout, String product_varid, String userid, String identity) {\r\n        this.context = context;\r\n        this.categorylist = categorylist;\r\n        this.layout = layout;\r\n        this.product_varid=product_varid;\r\n        this.identity = identity;\r\n        this.userid = userid;\r\n        //this.visibleNumber = visibleNumber;\r\n    }\r\n\r\n    @NonNull\r\n\r\n    public CartViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {\r\n        View view = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);\r\n        return new CartViewHolder(view);\r\n    }\r\n\r\n\r\n    @NonNull\r\n\r\n    public void onBindViewHolder(@NonNull  final CartViewHolder holder, int position) {\r\n\r\n\r\n\r\n        Log.d(\"CattegorryListt\", String.valueOf(categorylist));\r\n\r\n        Log.d(\"Position\", String.valueOf(position));\r\n        final CartItems model = categorylist.get(position);\r\n\r\n        //loading the image\r\n        Cartitems=getItemCount();\r\n\r\n        Glide.with(context)\r\n                .load(model.getImage())\r\n                .into((holder.imgcategory));\r\n\r\n        holder.disprice.setText(\"₹ \"+String.valueOf(model.getDiscounted_price()));\r\n        holder.orprice.setPaintFlags( holder.orprice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);\r\n        holder.orprice.setText(\"₹ \"+String.valueOf(model.getPrice()));\r\n        holder.txttitle.setText(model.getName());\r\n        holder.quantity.setText(\"Qty : \"+model.getQuantity());\r\n\r\n\r\n\r\n        holder.layout_remove.setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n\r\n\r\n                StringRequest stringRequest = new StringRequest(Request.Method.POST, Cartremove_URL,\r\n                        new Response.Listener<String>() {\r\n\r\n                            @SuppressLint(\"LongLogTag\")\r\n                            @Override\r\n                            public void onResponse(String response) {\r\n                                Log.d(\"showwwwwwwwwwwcartremove\", String.valueOf(response));\r\n                                if(response.equals(\"success\")){\r\n                                    Toast.makeText(context, \"Item removed from cart\", Toast.LENGTH_SHORT).show();\r\n                                    Intent refresh = new Intent(context, CartListActivity.class);\r\n                                    context.startActivity(refresh);\r\n                                    ((Activity)context).finish();\r\n                                    DashboardMain.notificationCountCart--;\r\n                                }\r\n\r\n\r\n                            }\r\n                        },\r\n                        new Response.ErrorListener() {\r\n                            @Override\r\n                            public void onErrorResponse(VolleyError error) {\r\n                            }\r\n                        }){\r\n                    @Override\r\n                    protected Map<String, String> getParams() throws AuthFailureError {\r\n                        Map<String,String> prams = new HashMap<>();\r\n                        prams.put(\"pvid\", product_varid);\r\n                        prams.put(\"id\",userid);\r\n                        prams.put(\"identity\",identity);\r\n\r\n                        return prams;\r\n                    }\r\n                };\r\n                RequestQueue requestQueue = Volley.newRequestQueue(v.getContext());\r\n                requestQueue.add(stringRequest);\r\n            }\r\n        });\r\n\r\n    }\r\n\r\n    /*\r\n    public void toggleSelection(int position) {\r\n        CartItems selectedProduct = categorylist.get(position);\r\n        if(selectedProduct.isSelected()) { // no need to check \" == true\"\r\n            selectedProduct.setSelected( false);\r\n        }\r\n        else {\r\n            selectedProduct.setSelected(true);\r\n        }\r\n        //notifyDataSetInvalidated();\r\n    }\r\n\r\n */\r\n\r\n    public int getItemCount() {\r\n        return categorylist.size();\r\n    }\r\n\r\n    public class CartViewHolder extends RecyclerView.ViewHolder {\r\n\r\n        public final TextView txttitle,orprice, disprice,quantity;\r\n        final ImageView imgcategory;\r\n        LinearLayout layout_remove;\r\n\r\n\r\n        public CartViewHolder(View itemView) {\r\n            super(itemView);\r\n            quantity=itemView.findViewById(R.id.quantity);\r\n            orprice = itemView.findViewById(R.id.price_ori);\r\n            disprice=itemView.findViewById(R.id.dis_price);\r\n            imgcategory = itemView.findViewById(R.id.image_cartlist);\r\n            txttitle = itemView.findViewById(R.id.name_cart);\r\n            layout_remove=itemView.findViewById(R.id.layout_remove);\r\n        }\r\n\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/adapter/CartItemsAdapter.java	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/java/com/example/visudhaajivamapp/adapter/CartItemsAdapter.java	(date 1625550984447)
+@@ -106,10 +106,16 @@
+                                 Log.d("showwwwwwwwwwwcartremove", String.valueOf(response));
+                                 if(response.equals("success")){
+                                     Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show();
+-                                    Intent refresh = new Intent(context, CartListActivity.class);
+-                                    context.startActivity(refresh);
+-                                    ((Activity)context).finish();
+-                                    DashboardMain.notificationCountCart--;
++//                                      categorylist.remove(position);
++//                                      notifyDataSetChanged();
++                                    int newPosition = holder.getAdapterPosition();
++                                    categorylist.remove(newPosition);
++                                    notifyItemRemoved(newPosition);
++                                    notifyItemRangeChanged(newPosition,categorylist.size());
++//                                    Intent refresh = new Intent(context, CartListActivity.class);
++//                                    context.startActivity(refresh);
++//                                    ((Activity)context).finish();
++//                                    DashboardMain.notificationCountCart--;
+                                 }
+ 
+ 
+Index: app/src/main/java/com/example/visudhaajivamapp/addedbysam/CartListActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.addedbysam;\r\n\r\nimport android.annotation.SuppressLint;\r\nimport android.content.Context;\r\nimport android.content.Intent;\r\nimport android.content.SharedPreferences;\r\nimport android.os.Bundle;\r\n\r\nimport android.util.Log;\r\nimport android.view.View;\r\nimport android.widget.Button;\r\nimport android.widget.LinearLayout;\r\n\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\nimport androidx.recyclerview.widget.LinearLayoutManager;\r\nimport androidx.recyclerview.widget.RecyclerView;\r\n\r\nimport com.android.volley.AuthFailureError;\r\nimport com.android.volley.Request;\r\nimport com.android.volley.RequestQueue;\r\nimport com.android.volley.Response;\r\nimport com.android.volley.VolleyError;\r\nimport com.android.volley.toolbox.StringRequest;\r\nimport com.android.volley.toolbox.Volley;\r\nimport com.example.visudhaajivamapp.DashboardMain;\r\nimport com.example.visudhaajivamapp.LoginActivity;\r\nimport com.example.visudhaajivamapp.R;\r\nimport com.example.visudhaajivamapp.adapter.CartItemsAdapter;\r\nimport com.example.visudhaajivamapp.manageaddress.BuyNowModel;\r\nimport com.example.visudhaajivamapp.models.CartItems;\r\nimport com.example.visudhaajivamapp.models.SubCategory;\r\nimport com.google.gson.Gson;\r\n\r\nimport org.json.JSONArray;\r\nimport org.json.JSONException;\r\nimport org.json.JSONObject;\r\n\r\nimport java.io.UnsupportedEncodingException;\r\nimport java.net.URLDecoder;\r\nimport java.util.ArrayList;\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\n\r\n\r\npublic class CartListActivity extends AppCompatActivity {\r\n    private static Context mContext;\r\n    SubCategory product;\r\n    private static final String Cart_URL = \"https://visudhajivam.in/android/d.php\";\r\n    private static final String Cart_recURL =\"https://visudhajivam.in/android/cart.php\";\r\n    private BuyNowModel finalModel;\r\n    public static ArrayList<CartItems> productList;\r\n    RecyclerView cartrecyclerView;\r\n\r\n    int empty_cart;\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_cart_list);\r\n        mContext = CartListActivity.this;\r\n        productList = new ArrayList<>();\r\n\r\n        empty_cart= R.layout.empty_message_layout_action;\r\n        //Show cart layout based on items\r\n        LinearLayout layoutCartItems = (LinearLayout) findViewById(R.id.layout_items);\r\n        LinearLayout layoutCartPayments = (LinearLayout) findViewById(R.id.layout_payment);\r\n        LinearLayout layoutCartNoItems = (LinearLayout) findViewById(R.id.layout_cart_empty);\r\n\r\n\r\n        cartrecyclerView = findViewById(R.id.cartrecyclerview);\r\n        cartrecyclerView.setLayoutManager(new LinearLayoutManager(this));\r\n        SharedPreferences pref = getSharedPreferences(\"tech\", Context.MODE_PRIVATE);\r\n        String userid = String.valueOf(pref.getInt(\"id\",0)); //user id\r\n        String identity = pref.getString(\"identity\",\"\");\r\n\r\n        Log.d(\"cartitems\", String.valueOf(CartItemsAdapter.Cartitems));\r\n        Log.d(\"userid\", userid);\r\n        Log.d(\"identity\", identity);\r\n\r\n\r\n        Intent intent = getIntent();\r\n        if (intent.hasExtra(\"PRODUCT\") ) {\r\n\r\n            layoutCartNoItems.setVisibility(View.GONE);\r\n            layoutCartItems.setVisibility(View.VISIBLE);\r\n            layoutCartPayments.setVisibility(View.VISIBLE);\r\n\r\n            product = (SubCategory) intent.getSerializableExtra(\"PRODUCT\");\r\n            String product_id = String.valueOf(product.getProduct_id()); //product_id\r\n            String quantity = getIntent().getStringExtra(\"QUANTITY\"); //quantity =1\r\n            String product_variant_id =String.valueOf(product.getId()); // product_variant_id\r\n            double priceToSend = product.getDiscounted_price() * Integer.parseInt(quantity);\r\n\r\n\r\n            SharedPreferences sharedPreferences = CartListActivity.this.getSharedPreferences(\"Cart\", Context.MODE_PRIVATE);\r\n\r\n            SharedPreferences.Editor editor = sharedPreferences.edit();\r\n\r\n            editor.putString(\"product\", product_id);\r\n            editor.putString(\"quantity\", quantity);\r\n            editor.putString(\"pvid\",product_variant_id);\r\n            editor.commit();\r\n\r\n            sendCartInfoadd(userid,product_id, quantity,product_variant_id,identity);\r\n\r\n        }else if(CartItemsAdapter.Cartitems >0){\r\n\r\n            SharedPreferences sharedPreferences = getSharedPreferences(\"Cart\",Context.MODE_PRIVATE);\r\n            String product_id = sharedPreferences.getString(\"product\",\"\");\r\n            String quantity = sharedPreferences.getString(\"quantity\",\"\");\r\n            String product_variant_id = sharedPreferences.getString(\"identity\",\"\");\r\n\r\n            sendCartInfoadd(userid,product_id, quantity,product_variant_id,identity);\r\n        }\r\n\r\n        else{\r\n\r\n            layoutCartNoItems.setVisibility(View.VISIBLE);\r\n            layoutCartItems.setVisibility(View.GONE);\r\n            layoutCartPayments.setVisibility(View.GONE);\r\n\r\n            Button bStartShopping = (Button) findViewById(R.id.bAddNew);\r\n            bStartShopping.setOnClickListener(new View.OnClickListener() {\r\n                @Override\r\n                public void onClick(View view) {\r\n                    finish();\r\n                }\r\n            });\r\n\r\n        }\r\n\r\n\r\n\r\n\r\n\r\n    }\r\n\r\n\r\n\r\n    private void sendCartInfoadd(String userid, String product_id, String quantity, String product_varid,String identity) {\r\n\r\n\r\n\r\n        StringRequest stringRequest = new StringRequest(Request.Method.POST, Cart_URL,\r\n                new Response.Listener<String>() {\r\n\r\n                    @SuppressLint(\"LongLogTag\")\r\n                    @Override\r\n                    public void onResponse(String response) {\r\n                        Log.d(\"showwwwwwwwwwwcartsend\", String.valueOf(response));\r\n                        if(response.equals(\"seccess\")){\r\n                            CartReceiveInfo(product_varid,userid,identity);\r\n                        }\r\n\r\n\r\n                    }\r\n                },\r\n                new Response.ErrorListener() {\r\n                    @Override\r\n                    public void onErrorResponse(VolleyError error) {\r\n                    }\r\n                }){\r\n            @Override\r\n            protected Map<String, String> getParams() throws AuthFailureError {\r\n                Map<String,String> prams = new HashMap<>();\r\n                prams.put(\"user_id\", userid);\r\n                prams.put(\"product_id\", product_id);\r\n                prams.put(\"product_variant_id\",product_varid);\r\n                prams.put(\"quantity\",quantity);\r\n                prams.put(\"identity\",identity);\r\n\r\n                return prams;\r\n            }\r\n        };\r\n        RequestQueue requestQueue = Volley.newRequestQueue(this);\r\n        requestQueue.add(stringRequest);\r\n    }\r\n\r\n    private void CartReceiveInfo(String product_varid,String userid,String identity) {\r\n\r\n        StringRequest stringRequest = new StringRequest(Request.Method.POST, Cart_recURL,\r\n                new Response.Listener<String>() {\r\n                    @Override\r\n                    public void onResponse(String response) {\r\n                        try {\r\n                            Log.d(\"JsonArayyyyyyyyyyyyy\", String.valueOf(response));\r\n\r\n                            //converting the string to json array object\r\n                            JSONArray array = new JSONArray( URLDecoder.decode( response, \"UTF-8\" ));\r\n\r\n                            //traversing through all the object\r\n                            for (int i = 0; i < array.length(); i++) {\r\n\r\n                                //getting product object from json array\r\n                                JSONObject product = array.getJSONObject(i);\r\n                                Log.d(\"JsonArayyyyyyyyyyyyy\", String.valueOf(product));\r\n\r\n                                //adding the product to product list\r\n                                productList.add(new CartItems(\r\n                                        product.getInt(\"id\"),\r\n                                        product.getString(\"name\"),\r\n                                        product.getDouble(\"price\"),\r\n                                        product.getDouble(\"discounted_price\"),\r\n                                        product.getInt(\"quantity\"),\r\n                                        product.getString(\"image\"),\r\n                                        true\r\n                                ));\r\n                            }\r\n                            //\"id\":\"31\",\"name\":\"paracitamol\",\"price\":\"150\",\"quuantity\":\"1\",\"image\":\"img\\/products\\/paracitamol73685.png\"\r\n                            //creating adapter object and setting it to recyclerview\r\n\r\n                            Log.d(\"CartItemsListt\", String.valueOf(productList));\r\n                            CartItemsAdapter adapter1 = new CartItemsAdapter(CartListActivity.this,productList,R.layout.layout_cartlist_item, userid,identity,product_varid);\r\n                            cartrecyclerView.setAdapter(adapter1);\r\n\r\n                            //mShimmerViewContainer.stopShimmer();\r\n                            //mShimmerViewContainer.setVisibility(View.GONE);\r\n                            cartrecyclerView.setVisibility(View.VISIBLE);\r\n\r\n\r\n\r\n                        } catch (JSONException | UnsupportedEncodingException e) {\r\n                            e.printStackTrace();\r\n                        }\r\n                    }\r\n                },\r\n                new Response.ErrorListener() {\r\n                    @Override\r\n                    public void onErrorResponse(VolleyError error) {\r\n                    }\r\n                }){\r\n\r\n\r\n\r\n            @Override\r\n            protected Map<String, String> getParams() throws AuthFailureError {\r\n                Map<String,String> prams = new HashMap<>();\r\n                prams.put(\"id\", userid);\r\n                //prams.put(\"product_id\", product_id);\r\n                //prams.put(\"product_variant_id\",product_varid);\r\n                //prams.put(\"quantity\",quantity);\r\n                prams.put(\"identity\",identity);\r\n\r\n                return prams;\r\n            }\r\n        };\r\n        RequestQueue requestQueue = Volley.newRequestQueue(this);\r\n        requestQueue.add(stringRequest);\r\n\r\n    }\r\n\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/addedbysam/CartListActivity.java	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/java/com/example/visudhaajivamapp/addedbysam/CartListActivity.java	(date 1625549907830)
+@@ -10,6 +10,7 @@
+ import android.view.View;
+ import android.widget.Button;
+ import android.widget.LinearLayout;
++import android.widget.TextView;
+ 
+ 
+ import androidx.appcompat.app.AppCompatActivity;
+@@ -24,13 +25,11 @@
+ import com.android.volley.toolbox.StringRequest;
+ import com.android.volley.toolbox.Volley;
+ import com.example.visudhaajivamapp.DashboardMain;
+-import com.example.visudhaajivamapp.LoginActivity;
+ import com.example.visudhaajivamapp.R;
+ import com.example.visudhaajivamapp.adapter.CartItemsAdapter;
+ import com.example.visudhaajivamapp.manageaddress.BuyNowModel;
+ import com.example.visudhaajivamapp.models.CartItems;
+ import com.example.visudhaajivamapp.models.SubCategory;
+-import com.google.gson.Gson;
+ 
+ import org.json.JSONArray;
+ import org.json.JSONException;
+@@ -52,6 +51,10 @@
+     public static ArrayList<CartItems> productList;
+     RecyclerView cartrecyclerView;
+ 
++    private TextView paymentText;
++    ArrayList<SubCategory> productArray;
++    ArrayList<String> quantityArray;
++
+     int empty_cart;
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+@@ -71,15 +74,10 @@
+         cartrecyclerView.setLayoutManager(new LinearLayoutManager(this));
+         SharedPreferences pref = getSharedPreferences("tech", Context.MODE_PRIVATE);
+         String userid = String.valueOf(pref.getInt("id",0)); //user id
+-        String identity = pref.getString("identity","");
+-
+-        Log.d("cartitems", String.valueOf(CartItemsAdapter.Cartitems));
+-        Log.d("userid", userid);
+-        Log.d("identity", identity);
+-
++        String identity = pref.getString("identity","identity");
+ 
+         Intent intent = getIntent();
+-        if (intent.hasExtra("PRODUCT") ) {
++        if (intent.hasExtra("PRODUCT") || DashboardMain.notificationCountCart >0) {
+ 
+             layoutCartNoItems.setVisibility(View.GONE);
+             layoutCartItems.setVisibility(View.VISIBLE);
+@@ -91,29 +89,10 @@
+             String product_variant_id =String.valueOf(product.getId()); // product_variant_id
+             double priceToSend = product.getDiscounted_price() * Integer.parseInt(quantity);
+ 
+-
+-            SharedPreferences sharedPreferences = CartListActivity.this.getSharedPreferences("Cart", Context.MODE_PRIVATE);
+-
+-            SharedPreferences.Editor editor = sharedPreferences.edit();
+-
+-            editor.putString("product", product_id);
+-            editor.putString("quantity", quantity);
+-            editor.putString("pvid",product_variant_id);
+-            editor.commit();
+-
+-            sendCartInfoadd(userid,product_id, quantity,product_variant_id,identity);
++            sendCartInfo(userid,product_id, quantity,product_variant_id,identity);
+ 
+-        }else if(CartItemsAdapter.Cartitems >0){
+ 
+-            SharedPreferences sharedPreferences = getSharedPreferences("Cart",Context.MODE_PRIVATE);
+-            String product_id = sharedPreferences.getString("product","");
+-            String quantity = sharedPreferences.getString("quantity","");
+-            String product_variant_id = sharedPreferences.getString("identity","");
+-
+-            sendCartInfoadd(userid,product_id, quantity,product_variant_id,identity);
+-        }
+-
+-        else{
++        }else{
+ 
+             layoutCartNoItems.setVisibility(View.VISIBLE);
+             layoutCartItems.setVisibility(View.GONE);
+@@ -129,15 +108,27 @@
+ 
+         }
+ 
++        //**********************Rohit work********************
++        paymentText = findViewById(R.id.text_action_bottom2);
++        paymentText.setOnClickListener(new View.OnClickListener() {
++            @Override
++            public void onClick(View v) {
++                fillDetailsInArray();
++            }
++        });
+ 
+ 
++    }
+ 
++    private void fillDetailsInArray(){
++        productArray = new ArrayList<SubCategory>();
++        quantityArray = new ArrayList<String>();
++        if(productList!=null){
+ 
++        }
+     }
+ 
+-
+-
+-    private void sendCartInfoadd(String userid, String product_id, String quantity, String product_varid,String identity) {
++    private void sendCartInfo(String userid, String product_id, String quantity, String product_varid,String identity) {
+ 
+ 
+ 
+@@ -208,9 +199,8 @@
+                             }
+                             //"id":"31","name":"paracitamol","price":"150","quuantity":"1","image":"img\/products\/paracitamol73685.png"
+                             //creating adapter object and setting it to recyclerview
+-
+                             Log.d("CartItemsListt", String.valueOf(productList));
+-                            CartItemsAdapter adapter1 = new CartItemsAdapter(CartListActivity.this,productList,R.layout.layout_cartlist_item, userid,identity,product_varid);
++                            CartItemsAdapter adapter1 = new CartItemsAdapter(CartListActivity.this,productList,R.layout.layout_cartlist_item, product_varid,userid,identity);
+                             cartrecyclerView.setAdapter(adapter1);
+ 
+                             //mShimmerViewContainer.stopShimmer();
+Index: app/src/main/java/com/example/visudhaajivamapp/models/SubCategory.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.models;\r\n\r\nimport java.io.Serializable;\r\n\r\npublic class SubCategory implements Serializable {\r\n\r\n    private int id,subcategory_id,stock,product_id,category_id;\r\n    private String name;\r\n    private double discounted_price;\r\n    private double price;\r\n    private String image,manufacture,mande_in;\r\n\r\n    public SubCategory(int id, String name, double price, double discounted_price, int category_id, int subcategory_id, String manufacture, String mande_in, int stock, int product_id, String image) {\r\n        this.id = id;\r\n        this.name = name;\r\n        this.discounted_price = discounted_price;\r\n        this.price = price;\r\n        this.image = image;\r\n        this.category_id = category_id;\r\n        this.subcategory_id = subcategory_id;\r\n        this.stock = stock;\r\n        this.product_id = product_id;\r\n        this.manufacture = manufacture;\r\n        this.mande_in = mande_in;\r\n\r\n    }\r\n\r\n    public int getId() {\r\n        return id;\r\n    }\r\n\r\n    public void setId(int id) {\r\n        this.id = id;\r\n    }\r\n\r\n    public String getName() {\r\n        return name;\r\n    }\r\n\r\n    public void setName(String name) {\r\n        this.name = name;\r\n    }\r\n\r\n    public double getDiscounted_price() {\r\n        return discounted_price;\r\n    }\r\n\r\n    public void setDiscounted_price(double discounted_price) {\r\n        this.discounted_price = discounted_price;\r\n    }\r\n\r\n    public double getPrice() {\r\n        return price;\r\n    }\r\n\r\n    public void setPrice(double price) {\r\n        this.price = price;\r\n    }\r\n\r\n    public String getImage() {\r\n        return image;\r\n    }\r\n\r\n    public void setImage(String image) {\r\n        this.image = image;\r\n    }\r\n\r\n\r\n    public int getCategory_id() {\r\n        return category_id;\r\n    }\r\n\r\n    public void setCategory_id(int category_id) {\r\n        this.category_id = category_id;\r\n    }\r\n\r\n\r\n\r\n    public int getSubcategory_id() {\r\n        return subcategory_id;\r\n    }\r\n\r\n    public void setSubcategory_id(int subcategory_id) {\r\n        this.subcategory_id = subcategory_id;\r\n    }\r\n\r\n    public int getStock() {\r\n        return stock;\r\n    }\r\n\r\n    public void setStock(int stock) {\r\n        this.stock = stock;\r\n    }\r\n\r\n    public int getProduct_id() {\r\n        return product_id;\r\n    }\r\n\r\n    public void setProduct_id(int product_id) {\r\n        this.product_id = product_id;\r\n    }\r\n\r\n    public String getManufacture() {\r\n        return manufacture;\r\n    }\r\n\r\n    public void setManufacture(String manufacture) {\r\n        this.manufacture = manufacture;\r\n    }\r\n\r\n    public String getMande_in() {\r\n        return mande_in;\r\n    }\r\n\r\n    public void setMande_in(String mande_in) {\r\n        this.mande_in = mande_in;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/models/SubCategory.java	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/java/com/example/visudhaajivamapp/models/SubCategory.java	(date 1625491547805)
+@@ -10,6 +10,9 @@
+     private double price;
+     private String image,manufacture,mande_in;
+ 
++    public SubCategory(){
++
++    }
+     public SubCategory(int id, String name, double price, double discounted_price, int category_id, int subcategory_id, String manufacture, String mande_in, int stock, int product_id, String image) {
+         this.id = id;
+         this.name = name;
+Index: app/src/main/java/com/example/visudhaajivamapp/addedbysam/ProductDetail.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.addedbysam;\r\n\r\nimport android.annotation.SuppressLint;\r\nimport android.content.Intent;\r\nimport android.graphics.Paint;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.view.View;\r\nimport android.widget.EditText;\r\nimport android.widget.ImageButton;\r\nimport android.widget.ImageView;\r\nimport android.widget.LinearLayout;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport com.android.volley.Request;\r\nimport com.android.volley.Response;\r\nimport com.android.volley.VolleyError;\r\nimport com.android.volley.toolbox.StringRequest;\r\nimport com.android.volley.toolbox.Volley;\r\nimport com.bumptech.glide.Glide;\r\nimport com.example.visudhaajivamapp.DashboardMain;\r\nimport com.example.visudhaajivamapp.R;\r\nimport com.example.visudhaajivamapp.manageaddress.AddressDetailsActivity;\r\nimport com.example.visudhaajivamapp.models.Slider;\r\nimport com.example.visudhaajivamapp.models.SubCategory;\r\n\r\nimport org.json.JSONArray;\r\nimport org.json.JSONException;\r\nimport org.json.JSONObject;\r\n\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\n\r\npublic class ProductDetail extends AppCompatActivity {\r\n\r\n    private static final String URL_PRODUCTS = \"https://visudhajivam.in/android/orders.php\";\r\n    static ArrayList<Slider> sliderArrayList;\r\n    EditText title, mainprice, discountedprice, discription, detail_madein;\r\n    ImageView imagev;\r\n    View root;\r\n    TextView text_ratings_reviews;\r\n    ImageButton imgAdd, imgMinus;\r\n    TextView txtqty;\r\n    SubCategory productt;\r\n    int count;\r\n    SubCategory productToSend;\r\n    TextView addtocart, buynow;\r\n    LinearLayout lytshare;\r\n\r\n\r\n\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n\r\n        //root = inflater.inflate(R.layout.detail_activity, container, false);\r\n\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.detail_activity);\r\n\r\n        text_ratings_reviews = findViewById(R.id.text_ratings_reviews);\r\n        imagev = findViewById(R.id.image);\r\n        discountedprice = findViewById(R.id.disprice);\r\n        mainprice = findViewById(R.id.mainprice);\r\n        title = findViewById(R.id.title);\r\n        discription = findViewById(R.id.detail);\r\n        imgAdd = findViewById(R.id.btnaddqty);\r\n        imgMinus = findViewById(R.id.btnminusqty);\r\n        txtqty = findViewById(R.id.txtqty);\r\n        detail_madein = findViewById(R.id.detail2);\r\n        lytshare = findViewById(R.id.lytshare);\r\n        addtocart=findViewById(R.id.addtocart);\r\n        buynow=findViewById(R.id.buyNow);\r\n        //id = getArguments().getString(\"id\");\r\n        List<SubCategory> productList = new ArrayList<>();\r\n\r\n//        String image = getIntent().getStringExtra(\"image\");\r\n//        String name= getIntent().getStringExtra(\"name\");\r\n//        String dprice = String.valueOf(getIntent().getDoubleExtra(\"discounted_price\",0.0));\r\n//        String price = String.valueOf(getIntent().getDoubleExtra(\"price\",0.0));\r\n//        String manu = getIntent().getStringExtra(\"manufact\");\r\n//        String madein = getIntent().getStringExtra(\"madein\");\r\n//        int stock = getIntent().getIntExtra(\"stock\",0);\r\n        Intent intent = getIntent();\r\n        if(intent.hasExtra(\"PRODUCT_DETAILS\")){\r\n            productToSend = (SubCategory) intent.getSerializableExtra(\"PRODUCT_DETAILS\");\r\n        }\r\n\r\n        lytshare.setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                Intent shareIntent =   new Intent(android.content.Intent.ACTION_SEND);\r\n                shareIntent.setType(\"text/plain\");\r\n                shareIntent.putExtra(Intent.EXTRA_SUBJECT,\"Insert Subject here\");\r\n                String app_url = \" https://visudhajivam.in/\";\r\n                shareIntent.putExtra(android.content.Intent.EXTRA_TEXT,app_url);\r\n                startActivity(Intent.createChooser(shareIntent, \"Share via\"));\r\n            }\r\n        });\r\n\r\n\r\n\r\n        imgMinus.setOnClickListener(new View.OnClickListener() {\r\n            @SuppressLint(\"SetTextI18n\")\r\n            @Override\r\n            public void onClick(View view) {\r\n                count = Integer.parseInt(txtqty.getText().toString());\r\n                if (!(count <= 0)) {\r\n\r\n                    count--;\r\n                    txtqty.setText(\"\" + count);\r\n\r\n\r\n                }\r\n\r\n            }\r\n        });\r\n\r\n        imgAdd.setOnClickListener(new View.OnClickListener() {\r\n            @SuppressLint(\"SetTextI18n\")\r\n            @Override\r\n            public void onClick(View view) {\r\n                count = Integer.parseInt(txtqty.getText().toString());\r\n                if (!(count >= Float.parseFloat(String.valueOf(productToSend.getStock()))))\r\n                {\r\n                    count++;\r\n                    txtqty.setText(\"\" + count);\r\n\r\n                } else{\r\n                    Toast.makeText(ProductDetail.this,getString(R.string.stock_limit), Toast.LENGTH_SHORT).show();\r\n                }\r\n            }\r\n\r\n\r\n        });\r\n\r\n\r\n        //GetallProducts();\r\n\r\n        title.setText(productToSend.getName());\r\n        discountedprice.setText(\"₹ \"+productToSend.getDiscounted_price());\r\n        mainprice.setPaintFlags(mainprice.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);\r\n        mainprice.setText(\"₹ \"+productToSend.getPrice());\r\n        Glide.with(this)\r\n                .load(productToSend.getImage())\r\n                .into(imagev);\r\n\r\n        discription.setText(\"Manufacturer : \"+productToSend.getManufacture());\r\n        detail_madein.setText(\"Made In : \"+productToSend.getMande_in());\r\n\r\n\r\n        buynow.setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                if(Integer.parseInt((String) txtqty.getText()) == 0){\r\n                    Toast.makeText(ProductDetail.this,\"Quantity should be more than 0\",Toast.LENGTH_LONG).show();\r\n                    return;\r\n                }\r\n                Intent intent = new Intent(ProductDetail.this, AddressDetailsActivity.class);\r\n                intent.putExtra(\"PRODUCT\",productToSend);\r\n                intent.putExtra(\"QUANTITY\",txtqty.getText());\r\n                startActivity(intent);\r\n            }\r\n        });\r\n\r\n        addtocart.setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                if(Integer.parseInt((String) txtqty.getText())==0){\r\n                    Toast.makeText(ProductDetail.this,\"Please select quantity of product\",Toast.LENGTH_SHORT).show();\r\n                    return;\r\n                }\r\n                DashboardMain.notificationCountCart++;\r\n                Intent intent =new Intent(ProductDetail.this,CartListActivity.class);\r\n                intent.putExtra(\"PRODUCT\",productToSend);\r\n                intent.putExtra(\"QUANTITY\",txtqty.getText());\r\n                startActivity(intent);\r\n                finish();\r\n                Toast.makeText(ProductDetail.this, R.string.addtocart, Toast.LENGTH_SHORT).show();\r\n\r\n            }\r\n        });\r\n\r\n    }\r\n\r\n    /*\r\n\r\n    private void GetallProducts() {\r\n\r\n        /*\r\n         * Creating a String Request\r\n         * The request type is GET defined by first parameter\r\n         * The URL is defined in the second parameter\r\n         * Then we have a Response Listener and a Error Listener\r\n         * In response listener we will get the JSON response as a String\r\n         *\r\n        StringRequest stringRequest = new StringRequest(Request.Method.GET, URL_PRODUCTS,\r\n                new Response.Listener<String>() {\r\n                    @Override\r\n                    public void onResponse(String response) {\r\n                        try {\r\n                            //converting the string to json array object\r\n                            JSONArray array = new JSONArray(response);\r\n\r\n                            //traversing through all the object\r\n                            for (int i = 0; i < array.length(); i++) {\r\n\r\n                                //getting product object from json array\r\n                                JSONObject product = array.getJSONObject(i);\r\n                                Log.d(\"JsonArayyyyyyyyyyyyy\", String.valueOf(product));\r\n\r\n                                //adding the product to product list\r\n                                productt = new SubCategory(\r\n                                        product.getInt(\"id\"),\r\n                                        product.getString(\"name\"),\r\n                                        product.getDouble(\"price\"),\r\n                                        product.getDouble(\"discounted_price\"),\r\n                                        product.getInt(\"category_id\"),\r\n                                        product.getInt(\"subcategory_id\"),\r\n                                        product.getString(\"manufacturer\"),\r\n                                        product.getString(\"made_in\"),\r\n                                        product.getInt(\"stock\"),\r\n                                        product.getInt(\"product_id\"),\r\n                                        product.getString(\"image\")\r\n                                );\r\n                            }\r\n\r\n\r\n                            //creating adapter object and setting it to recyclerview\r\n                            //ProductAdapter adapter = new ProductAdapter(ProductDetail.this, productList);\r\n\r\n                            SetProductDetails(productt);\r\n\r\n                        } catch (JSONException e) {\r\n                            e.printStackTrace();\r\n                        }\r\n\r\n                    }\r\n                },\r\n                new Response.ErrorListener() {\r\n                    @Override\r\n                    public void onErrorResponse(VolleyError error) {\r\n\r\n                    }\r\n                });\r\n\r\n        //adding our stringrequest to queue\r\n        Volley.newRequestQueue(this).add(stringRequest);\r\n    }\r\n\r\n    private void SetProductDetails(final SubCategory product) {\r\n\r\n        try{\r\n\r\n            title.setText(product.getName());\r\n            sliderArrayList.add(new Slider(product.getImage()));\r\n            discountedprice.setText(String.valueOf(product.getDiscounted_price()));\r\n            mainprice.setText(String.valueOf(product.getPrice()));\r\n            discription.setText(\"Manufacturer : \"+product.getManufacture());\r\n            detail_madein.setText(\"Made In : \"+product.getMande_in());\r\n\r\n        }catch (Exception e){\r\n\r\n        }\r\n\r\n    }\r\n    /*\r\n    public void buyNow(View view){\r\n        if(Integer.parseInt((String) txtqty.getText()) == 0){\r\n            Toast.makeText(ProductDetail.this,\"Quantity should be more than 0\",Toast.LENGTH_LONG).show();\r\n            return;\r\n        }\r\n        Intent intent = new Intent(this, AddressDetailsActivity.class);\r\n        intent.putExtra(\"PRODUCT\",productToSend);\r\n        intent.putExtra(\"QUANTITY\",txtqty.getText());\r\n        startActivity(intent);\r\n    }\r\n\r\n    public void addtocart(View view) {\r\n        if(Integer.parseInt((String) txtqty.getText())==0){\r\n            Toast.makeText(this,\"Please select quantity of product\",Toast.LENGTH_SHORT).show();\r\n        }\r\n        Intent intent =new Intent(ProductDetail.this,CartListActivity.class);\r\n        intent.putExtra(\"PRODUCT\",productToSend);\r\n        intent.putExtra(\"QUANTITY\",txtqty.getText());\r\n        startActivity(intent);\r\n        finish();\r\n        Toast.makeText(this, R.string.addtocart, Toast.LENGTH_SHORT).show();\r\n    }\r\n\r\n    public void Addtowishlist(View view) {\r\n        Intent intent =new Intent(ProductDetail.this,WishlistActivity.class);\r\n        startActivity(intent);\r\n        finish();\r\n        Toast.makeText(this, \"Item Added to wishlist\", Toast.LENGTH_SHORT).show();\r\n    }\r\n\r\n     */\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/addedbysam/ProductDetail.java	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/java/com/example/visudhaajivamapp/addedbysam/ProductDetail.java	(date 1625491556548)
+@@ -158,8 +158,15 @@
+                     return;
+                 }
+                 Intent intent = new Intent(ProductDetail.this, AddressDetailsActivity.class);
++                ArrayList<SubCategory> productArray = new ArrayList<SubCategory>();
+                 intent.putExtra("PRODUCT",productToSend);
+                 intent.putExtra("QUANTITY",txtqty.getText());
++
++                productArray.add(productToSend);
++                intent.putExtra("PRODUCT_LIST",productArray);
++                ArrayList<String> quantityArray = new ArrayList<String>();
++                quantityArray.add(txtqty.getText().toString());
++                intent.putExtra("QUANTITY_LIST",quantityArray);
+                 startActivity(intent);
+             }
+         });
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    package=\"com.example.visudhaajivamapp\">\r\n\r\n    <uses-permission android:name=\"android.permission.INTERNET\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />\r\n    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.VisudhAajivamApp\">\r\n        <activity android:name=\".manageaddress.AddressDetailsActivity\"/>\r\n        <activity android:name=\".addedbysam.WishlistActivity\" />\r\n        <activity android:name=\".addedbysam.ProductSubCategory\" />\r\n        <activity android:name=\".addedbysam.ProductCategory\" />\r\n        <activity android:name=\".SignupActivity\" />\r\n\r\n        <activity android:name=\".addedbysam.AllSubCategory\" />\r\n        <activity android:name=\".addedbysam.CartListActivity\"/>\r\n        <activity android:name=\".lab_test\" />\r\n\r\n        <activity android:name=\".DashboardMain\" />\r\n        <activity android:name=\".Dashboard\" />\r\n        <activity android:name=\".addedbysam.ProductDetail\" />\r\n        <activity android:name=\".userprofile.Userprofile\"/>\r\n        <activity android:name=\".LoginActivity\" />\r\n        <activity android:name=\".IntroductoryActivity\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n        <activity android:name=\".MainActivity\" />\r\n\r\n        <meta-data\r\n            android:name=\"com.razorpay.ApiKey\"\r\n            android:value=\"rzp_test_h3TrVhJgZQFBQu\" />\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/AndroidManifest.xml	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/AndroidManifest.xml	(date 1625495946844)
+@@ -13,20 +13,19 @@
+         android:roundIcon="@mipmap/ic_launcher_round"
+         android:supportsRtl="true"
+         android:theme="@style/Theme.VisudhAajivamApp">
+-        <activity android:name=".manageaddress.AddressDetailsActivity"/>
++        <activity android:name=".manageaddress.ConfirmOrderActivity"></activity>
++        <activity android:name=".manageaddress.AddressDetailsActivity" />
+         <activity android:name=".addedbysam.WishlistActivity" />
+         <activity android:name=".addedbysam.ProductSubCategory" />
+         <activity android:name=".addedbysam.ProductCategory" />
+         <activity android:name=".SignupActivity" />
+-
+         <activity android:name=".addedbysam.AllSubCategory" />
+-        <activity android:name=".addedbysam.CartListActivity"/>
++        <activity android:name=".addedbysam.CartListActivity" />
+         <activity android:name=".lab_test" />
+-
+         <activity android:name=".DashboardMain" />
+         <activity android:name=".Dashboard" />
+         <activity android:name=".addedbysam.ProductDetail" />
+-        <activity android:name=".userprofile.Userprofile"/>
++        <activity android:name=".userprofile.Userprofile" />
+         <activity android:name=".LoginActivity" />
+         <activity android:name=".IntroductoryActivity">
+             <intent-filter>
+Index: .idea/jarRepositories.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/jarRepositories.xml	(date 1625494000298)
++++ .idea/jarRepositories.xml	(date 1625494000298)
+@@ -0,0 +1,35 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RemoteRepositoriesConfiguration">
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Maven Central repository" />
++      <option name="url" value="https://repo1.maven.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="jboss.community" />
++      <option name="name" value="JBoss Community repository" />
++      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="MavenRepo" />
++      <option name="name" value="MavenRepo" />
++      <option name="url" value="https://repo.maven.apache.org/maven2/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="GitHubPackages" />
++      <option name="name" value="GitHubPackages" />
++      <option name="url" value="https://maven.pkg.github.com/Cuberto/liquid-swipe-android" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="BintrayJCenter" />
++      <option name="name" value="BintrayJCenter" />
++      <option name="url" value="https://jcenter.bintray.com/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="Google" />
++      <option name="name" value="Google" />
++      <option name="url" value="https://dl.google.com/dl/android/maven2/" />
++    </remote-repository>
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/res/values/colors.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<resources>\r\n    <color name=\"colorPrimary\">#0276FD</color>\r\n    <color name=\"colorPrimaryDark\">#003F87</color>\r\n    <color name=\"colorAccent\">#03DAC5</color>\r\n    <color name=\"colorWhite\">#FDF9F9</color>\r\n\r\n    <color name=\"purple_500\">#FF6200EE</color>\r\n    <color name=\"purple_700\">#FF3700B3</color>\r\n    <color name=\"teal_200\">#FF03DAC5</color>\r\n    <color name=\"teal_700\">#FF018786</color>\r\n    <color name=\"black\">#FF000000</color>\r\n    <color name=\"white\">#FFFFFFFF</color>\r\n    <color name=\"green\">#004d40</color>\r\n    <color name=\"indigo\">#3F51B5</color>\r\n    <color name=\"lightblue\">#12cad6</color>\r\n    <color name=\"darkcyan\">#edffff</color>\r\n    <color name=\"grey\">#444444</color>\r\n    <color name=\"darkgrey\">#222222</color>\r\n    <color name=\"cyan\">#ECF3FF</color>\r\n    <color name=\"background\">#1A070707</color>\r\n\r\n\r\n    <color name=\"colorSecondary\">#FF7C1F</color>\r\n    <color name=\"colorPrimaryLight\">#C1E6FF</color>\r\n    <color name=\"bg_color\">#FFFFFF</color>\r\n\r\n\r\n\r\n    <color name=\"gray\">#ACABAB</color>\r\n    <color name=\"bggray\">#E9E8E8</color>\r\n    <color name=\"overlay_white\">#656668</color>\r\n    <color name=\"txt_color\">#191919</color>\r\n    <color name=\"trans_white\">#F2FFFFFF</color>\r\n    <color name=\"lightest_gray\">#DBDBDB</color>\r\n    <color name=\"red\">#eb4f3f</color>\r\n    <color name=\"tracking_gray\">#B9B6B6</color>\r\n    <color name=\"tracking_black\">#313030</color>\r\n    <color name=\"edt_bg_color\">#100F314A</color>\r\n    <color name=\"gray_blue\">#5d6079</color>\r\n    <color name=\"dark_gray\">#313030</color>\r\n    <color name=\"light_gray\">#dbdada</color>\r\n    <color name=\"light_green\">#14c167</color>\r\n    <color name=\"light_blue\">#B2E3F6</color>\r\n\r\n    <color name=\"status_text\">#FFFFFF</color>\r\n\r\n    <color name=\"tx_fail_bg\">#dd4b39</color>\r\n    <color name=\"tx_success_bg\">#00a65a</color>\r\n\r\n    <color name=\"received_status_bg\">#3c8dbc</color>\r\n    <color name=\"shipped_status_bg\">#f39c12</color>\r\n    <color name=\"returned_and_cancel_status_bg\">#dd4b39</color>\r\n    <color name=\"delivered_status_bg\">#00a65a</color>\r\n    <color name=\"awaiting_status_bg\">#565650</color>\r\n\r\n\r\n    <color name=\"transparent\">#00000000</color>\r\n    <color name=\"half_transparent\">#1A000000</color>\r\n    <color name=\"half_transparent_white\">#99FFFFFF</color>\r\n    <color name=\"swipe_delete\">#EA4235</color>\r\n\r\n    <color name=\"gen_black\">#000000</color>\r\n    <color name=\"gen_white\">#FFFFFF</color>\r\n    <color name=\"green_light\">#43A047</color>\r\n    <color name=\"grey_light\">#E0E0E0</color>\r\n\r\n    <!-- Screens background color-->\r\n    <color name=\"bg_screen1\">#f64c73</color>\r\n\r\n    <!-- dots inactive colors -->\r\n    <color name=\"dot_dark_screen1\">#d1395c</color>\r\n\r\n    <!-- dots active colors -->\r\n    <color name=\"dot_light_screen1\">#f98da5</color>\r\n\r\n    <!-- Placeholder colors-->\r\n    <color name=\"stay_color\">#999999</color>\r\n\r\n    <array name=\"array_dot_active\">\r\n        <item>@color/dot_light_screen1</item>\r\n        <item>@color/dot_light_screen1</item>\r\n        <item>@color/dot_light_screen1</item>\r\n        <item>@color/dot_light_screen1</item>\r\n    </array>\r\n\r\n    <array name=\"array_dot_inactive\">\r\n        <item>@color/dot_dark_screen1</item>\r\n        <item>@color/dot_dark_screen1</item>\r\n        <item>@color/dot_dark_screen1</item>\r\n        <item>@color/dot_dark_screen1</item>\r\n    </array>\r\n\r\n</resources>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/values/colors.xml	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/res/values/colors.xml	(date 1625497062698)
+@@ -77,6 +77,10 @@
+     <!-- Placeholder colors-->
+     <color name="stay_color">#999999</color>
+ 
++<!--    Confirm Order Backgound Color-->
++    <color name="confirm_order_gray">#F1F3F6</color>
++
++
+     <array name="array_dot_active">
+         <item>@color/dot_light_screen1</item>
+         <item>@color/dot_light_screen1</item>
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/vcs.xml	(date 1625492438086)
++++ .idea/vcs.xml	(date 1625492438086)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/java/com/example/visudhaajivamapp/ankit/UserRegistrationActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.ankit;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport android.os.Bundle;\r\n\r\nimport com.example.visudhaajivamapp.R;\r\n\r\npublic class UserRegistrationActivity extends AppCompatActivity {\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_user_registration);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/ankit/UserRegistrationActivity.java	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ app/src/main/java/com/example/visudhaajivamapp/ankit/UserRegistrationActivity.java	(date 1625491556564)
+@@ -11,6 +11,6 @@
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+-        setContentView(R.layout.activity_user_registration);
++        //setContentView(R.layout.activity_user_registration);
+     }
+ }
+\ No newline at end of file
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/gradle.xml	(date 1625492438106)
++++ .idea/gradle.xml	(date 1625492438106)
+@@ -0,0 +1,22 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="GradleMigrationSettings" migrationVersion="1" />
++  <component name="GradleSettings">
++    <option name="linkedExternalProjectsSettings">
++      <GradleProjectSettings>
++        <option name="testRunner" value="PLATFORM" />
++        <option name="distributionType" value="DEFAULT_WRAPPED" />
++        <option name="externalProjectPath" value="$PROJECT_DIR$" />
++        <option name="gradleHome" value="C:/Gradle/gradle-7.0.2" />
++        <option name="modules">
++          <set>
++            <option value="$PROJECT_DIR$" />
++            <option value="$PROJECT_DIR$/app" />
++          </set>
++        </option>
++        <option name="resolveModulePerSourceSet" value="false" />
++        <option name="useQualifiedModuleNames" value="true" />
++      </GradleProjectSettings>
++    </option>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/.name
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/.name	(date 1625492437194)
++++ .idea/.name	(date 1625492437194)
+@@ -0,0 +1,1 @@
++VisudhAajivam App
+\ No newline at end of file
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <bytecodeTargetLevel target=\"11\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/compiler.xml	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ .idea/compiler.xml	(date 1625492438097)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="CompilerConfiguration">
+-    <bytecodeTargetLevel target="11" />
++    <bytecodeTargetLevel target="1.8" />
+   </component>
+ </project>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_11\" default=\"false\" project-jdk-name=\"1.8\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision 4a366eca5fe4a7e835dba2bc46285bdc3ce23989)
++++ .idea/misc.xml	(date 1625492323552)
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK">
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+     <output url="file://$PROJECT_DIR$/build/classes" />
+   </component>
+   <component name="ProjectType">

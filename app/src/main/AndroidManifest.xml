@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.visudhaajivamapp">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.VisudhAajivamApp">
+        <activity android:name=".docterprofile.StatusActivity"></activity>
+        <activity android:name=".docterprofile.AppointmentActivity" />
+        <activity android:name=".docterprofile.DocterInfoActivity" />
+        <activity android:name=".DoctorConsultation.DoctorsList" />
+        <activity android:name=".DoctorConsultation.PincodeandCat" />
+        <activity android:name=".DoctorConsultation.DoctorCategory" />
+        <activity android:name=".manageaddress.SuccessOrderActivity" />
+        <activity android:name=".manageaddress.ConfirmOrderActivity" />
+        <activity android:name=".manageaddress.AddressDetailsActivity" />
+        <activity android:name=".addedbysam.WishlistActivity" />
+        <activity android:name=".addedbysam.ProductSubCategory" />
+        <activity android:name=".addedbysam.ProductCategory" />
+        <activity android:name=".SignupActivity" />
+        <activity android:name=".addedbysam.AllSubCategory" />
+        <activity android:name=".addedbysam.CartListActivity" />
+        <activity android:name=".DoctorConsultation.Specialist" />
+        <activity android:name=".DoctorConsultation.DateTimeInfo.RecyclerActivity" />
+        <activity android:name=".DoctorConsultation.DateTimeInfo.MainActivity" />
+        <activity android:name=".DoctorConsultation.DateTimeInfo.ConfirmOrderDocterActivity" />
+        <activity android:name=".lab_test" />
+        <activity android:name=".DashboardMain" />
+        <activity android:name=".Dashboard" />
+        <activity android:name=".addedbysam.ProductDetail" />
+        <activity android:name=".userprofile.Userprofile" />
+        <activity android:name=".LoginActivity" />
+        <activity android:name=".IntroductoryActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".MainActivity" />
+
+        <meta-data
+            android:name="com.razorpay.ApiKey"
+            android:value="rzp_test_h3TrVhJgZQFBQu" />
+        <meta-data
+            android:name="com.razorpay.ApiKey"
+            android:value="rzp_test_h3TrVhJgZQFBQu" />
+    </application>
+
+</manifest>

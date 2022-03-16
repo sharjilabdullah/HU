@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    tools:context=".DoctorConsultation.DateTimeInfo.MainActivity">
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar2"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FFFFFF"
+        android:elevation="10dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Light"
+        app:popupTheme="@style/ThemeOverlay.AppCompat"
+        >
+
+        <ImageView
+            android:layout_gravity="start|center_vertical"
+            android:id="@+id/back_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:srcCompat="@drawable/ic_arrow_back_ios_24" />
+
+
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <LinearLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="10dp">
+                    <ImageView
+                    android:id="@+id/pic_doc"
+                    android:layout_width="125dp"
+                    android:elevation="8dp"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_launcher_background"/>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="20dp"
+                        android:layout_gravity="top"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/doc_name"
+                            android:textStyle="bold"
+                            android:textAllCaps="true"
+                            android:layout_width="wrap_content"
+                            android:elevation="8dp"
+                            android:layout_height="wrap_content"
+                            android:text="Doctor name"
+                            android:textSize="25dp"
+                            android:textColor="@color/black"
+                        />
+
+                            <TextView
+                                android:id="@+id/doc_disc"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAllCaps="true"
+                                android:layout_marginTop="10dp"
+                                android:text="Description"
+                                android:textColor="@color/black"
+                                android:textSize="15dp"
+                                />
+                            </LinearLayout>
+
+                </LinearLayout>
+        <View android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/grey_light"
+            android:layout_marginBottom="15dp"
+/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_gravity="center">
+            <TextView
+                android:id="@+id/datein"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_gravity="center"
+                android:elevation="10dp"
+                android:textColor="@color/black"
+                android:background="@drawable/vie_b"
+                android:ems="10"
+                android:gravity="center"
+                android:hint="Date"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_gravity="center"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/vie_b"
+                android:elevation="10dp"
+                android:textColor="@color/black"
+                android:ems="10"
+                android:layout_marginBottom="10dp"
+                android:gravity="center"
+                android:hint="Time"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    <View android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/grey_light"
+        android:layout_marginBottom="15dp"
+        android:layout_marginTop="15dp"/>
+    <ScrollView android:id="@+id/scrollbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center">
+            <EditText
+                android:id="@+id/name1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/buttons_view"
+                android:ems="10"
+                android:hint="Enter your Full Name"
+                android:inputType="textFilter|textMultiLine"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/EmailAddress1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/buttons_view"
+                android:ems="10"
+                android:hint="Enter your valid Email Id"
+                android:inputType="textEmailAddress"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/number1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/buttons_view"
+                android:ems="10"
+                android:hint="Enter your Whatsapp Mobile number"
+                android:inputType="phone"
+                android:textStyle="bold" />
+
+
+
+            <EditText
+                android:id="@+id/prblm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/buttons_view"
+                android:ems="10"
+                android:gravity="start|top"
+                android:hint="Describe your Problems"
+                android:inputType="textMultiLine" />
+
+
+            <View android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/grey_light"
+                android:layout_marginBottom="15dp"
+                android:layout_marginTop="15dp"/>
+            <Button
+                android:id="@+id/getappoint"
+                android:layout_width="250dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/button_bg"
+                android:backgroundTint="@color/colorPrimaryLight"
+                android:elevation="10dp"
+                android:gravity="center"
+                android:text="Get Appointment"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+            </LinearLayout>
+
+
+
+</LinearLayout>
+

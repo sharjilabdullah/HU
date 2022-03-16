@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/activity_cart_list"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="10"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/white"
+    tools:context="com."
+    xmlns:shimmer="http://schemas.android.com/apk/res-auto">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar3"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FFFFFF"
+        android:elevation="10dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Light"
+        app:popupTheme="@style/ThemeOverlay.AppCompat"
+        >
+
+
+        <ImageButton
+            android:layout_gravity="start|center_vertical"
+            android:id="@+id/back_icon"
+            android:background="@color/white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:srcCompat="@drawable/ic_arrow_back_ios_24" />
+
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <LinearLayout android:id="@+id/layout_items"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:layout_below="@+id/toolbar3"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:layout_weight="9.5"
+        android:orientation="vertical"
+                  android:visibility="gone">
+    <androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+                                            android:id="@+id/cartrecyclerview"
+                                            android:scrollbars="vertical"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content" />
+
+
+    </LinearLayout>
+        <LinearLayout android:id="@+id/layout_payment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:elevation="30dp"
+                      android:background="@color/gen_black"
+            android:visibility="gone">
+        <TextView android:id="@+id/totalcartprice"
+                  android:layout_width="wrap_content"
+                  android:layout_height="match_parent"
+                  android:layout_weight="1"
+                  android:background="@color/gen_white"
+                  android:text="₹0"
+                  android:textSize="14dp"
+                  android:textColor="@color/gen_black"
+                  android:textStyle="bold"
+                  android:gravity="center"/>
+
+        <TextView android:id="@+id/paymentcart"
+                  android:layout_width="wrap_content"
+                  android:layout_height="match_parent"
+                  android:layout_weight="1"
+                  android:background="@color/colorPrimary"
+                  android:text="PAYMENT"
+                  android:textSize="14dp"
+                  android:textColor="@color/gen_white"
+                  android:textStyle="bold"
+                  android:gravity="center"/>
+    </LinearLayout>
+
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/mShimmerViewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        shimmer:shimmer_duration="1200"
+       >
+
+        <!-- Adding rows of placeholders -->
+        <!-- Adding rows of placeholders -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <include layout="@layout/simmer_product_list" />
+
+            <include layout="@layout/simmer_product_list" />
+
+            <include layout="@layout/simmer_product_list" />
+
+            <include layout="@layout/simmer_product_list" />
+
+            <include layout="@layout/simmer_product_list" />
+
+            <include layout="@layout/simmer_product_list" />
+
+            <include layout="@layout/simmer_product_list" />
+
+        </LinearLayout>
+
+    </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <include android:id="@+id/layout_cart_empty"
+        android:layout_below="@id/toolbar3"
+        layout="@layout/empty_message_layout_action"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

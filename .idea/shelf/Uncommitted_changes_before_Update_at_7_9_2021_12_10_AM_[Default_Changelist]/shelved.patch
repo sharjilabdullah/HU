@@ -1,0 +1,25 @@
+Index: app/src/main/java/com/example/visudhaajivamapp/DoctorConsultation/PincodeandCat.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.visudhaajivamapp.DoctorConsultation;\r\n\r\n\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.view.View;\r\nimport android.widget.Button;\r\nimport android.widget.EditText;\r\nimport android.widget.TextView;\r\n\r\nimport androidx.appcompat.app.AppCompatActivity;\r\n\r\nimport com.example.visudhaajivamapp.R;\r\n\r\npublic class PincodeandCat extends AppCompatActivity {\r\n    EditText e1;\r\n    Button b1;\r\n    String pin,typename;\r\n    //ImageView imageView;\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.activity_pincodeand_cat);\r\n        TextView text = findViewById(R.id.speciality);\r\n        TextView text1 = findViewById(R.id.description);\r\n        e1 = (EditText)findViewById(R.id.pincode);\r\n        b1 = (Button)findViewById(R.id.button);\r\n        typename = getIntent().getStringExtra(\"name1\");\r\n        Log.d(\"TAG\", \"onCreate: intent received \"+typename);\r\n        text.setText(getIntent().getStringExtra(\"name1\"));\r\n        text1.setText(getIntent().getStringExtra(\"description\"));\r\n\r\n        Log.d(\"TAG\", \"onCreate: data setttttt \"+typename);\r\n        b1.setOnClickListener(new View.OnClickListener() {\r\n            @Override\r\n            public void onClick(View v) {\r\n                pin = e1.getText().toString();\r\n\r\n                Intent intent = new Intent(v.getContext(),DoctorsList.class );\r\n\r\n                intent.putExtra(\"pin\", pin);\r\n                intent.putExtra(\"typename\", typename);\r\n                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);\r\n                v.getContext().startActivities(new Intent[]{intent});\r\n\r\n            }\r\n        });\r\n\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/visudhaajivamapp/DoctorConsultation/PincodeandCat.java	(revision e65fc3a4dd5e69ee8a29357446693cea42f0997a)
++++ app/src/main/java/com/example/visudhaajivamapp/DoctorConsultation/PincodeandCat.java	(date 1625769392070)
+@@ -12,6 +12,7 @@
+ import androidx.appcompat.app.AppCompatActivity;
+ 
+ import com.example.visudhaajivamapp.R;
++import com.example.visudhaajivamapp.docterprofile.AppointmentActivity;
+ 
+ public class PincodeandCat extends AppCompatActivity {
+     EditText e1;
+@@ -38,7 +39,6 @@
+                 pin = e1.getText().toString();
+ 
+                 Intent intent = new Intent(v.getContext(),DoctorsList.class );
+-
+                 intent.putExtra("pin", pin);
+                 intent.putExtra("typename", typename);
+                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

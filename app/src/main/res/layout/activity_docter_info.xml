@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="none"
+    android:paddingBottom="10dp"
+    tools:context=".docterprofile.DocterInfoActivity">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:orientation="vertical">
+
+
+
+        <TextView
+            android:id="@+id/Speciality"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:text="Speciality!"
+            android:textSize="10pt"
+            app:layout_constraintEnd_toStartOf="@+id/speciality_type"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="38dp"
+            tools:ignore="MissingConstraints" />
+
+
+        <EditText
+            android:id="@+id/speciality_type"
+            android:layout_width="119dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:inputType="textPersonName"
+            android:hint="mbbs"
+            tools:layout_editor_absoluteX="236dp"
+            tools:layout_editor_absoluteY="38dp"
+            tools:ignore="MissingConstraints" />
+
+        <TextView
+            android:id="@+id/Pricedoc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:text="Price"
+            android:textSize="10pt"
+            app:layout_constraintEnd_toStartOf="@+id/speciality_type"
+            app:layout_constraintHorizontal_bias="0.451"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="115dp"
+            tools:ignore="MissingConstraints" />
+
+        <EditText
+            android:id="@+id/pricedoc"
+            android:layout_width="119dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:inputType="textPersonName"
+            android:hint="mbbs"
+            tools:layout_editor_absoluteX="236dp"
+            tools:layout_editor_absoluteY="114dp"
+            tools:ignore="MissingConstraints" />
+
+        <Button
+            android:id="@+id/docter_update"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="48dp"
+            android:background="@color/colorPrimary"
+            android:text="Update"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.437"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pricedoc"/>
+
+        <TextView
+            android:id="@+id/Startdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="Start Date"
+            android:textSize="10pt"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/startdateinput"
+            app:layout_constraintHorizontal_bias="0.454"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/docter_update"
+            app:layout_constraintVertical_bias="0.118"/>
+
+
+        <EditText
+            android:id="@+id/startdateinput"
+            android:hint="yyyy-mm-dd format only"
+            android:textColorHint="@color/colorPrimaryDark"
+            android:layout_width="142dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="68dp"
+            android:layout_marginBottom="396dp"
+            android:gravity="center"
+            android:inputType="textPersonName"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <TextView
+            android:id="@+id/Enddate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="End Date"
+            android:textSize="10pt"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.144"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/startdateinput"
+            app:layout_constraintVertical_bias="0.122"/>
+
+
+        <EditText
+            android:id="@+id/Enddate_input"
+            android:hint="yyyy-mm-dd format only"
+            android:textColorHint="@color/colorPrimaryDark"
+            android:layout_width="139dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:inputType="textPersonName"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.488"
+            app:layout_constraintStart_toEndOf="@+id/Enddate"
+            app:layout_constraintTop_toBottomOf="@+id/startdateinput"
+            app:layout_constraintVertical_bias="0.124"/>
+
+        <TextView
+            android:id="@+id/Starttime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="Start Time"
+            android:textSize="10pt"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.151"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/Enddate"
+            app:layout_constraintVertical_bias="0.172"/>
+
+        <EditText
+            android:id="@+id/starttime_input"
+            android:layout_width="113dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:inputType="textPersonName"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.431"
+            app:layout_constraintStart_toEndOf="@+id/Starttime"
+            app:layout_constraintTop_toBottomOf="@+id/Enddate_input"
+            app:layout_constraintVertical_bias="0.13"/>
+
+
+        <TextView
+            android:id="@+id/TextView_Name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="56dp"
+            android:gravity="center"
+            android:text="End Time"
+            android:textSize="10pt"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/Endtime_input"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/Starttime"
+            app:layout_constraintVertical_bias="0.205"/>
+
+        <EditText
+            android:id="@+id/Endtime_input"
+            android:layout_width="113dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="40dp"
+            android:gravity="center"
+            android:inputType="textPersonName"
+            android:textColorHint="#2196F3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.724"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/starttime_input"/>
+
+        <Button
+            android:id="@+id/date_update"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:background="@color/colorPrimary"
+            android:text="Update"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.446"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/Endtime_input"
+            app:layout_constraintVertical_bias="0.311"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
